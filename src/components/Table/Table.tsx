@@ -13,6 +13,7 @@ import {Paginator} from '../Paginator/Paginator';
 import {TableSearch} from '../Search/TableSearch';
 import {UserInfo} from '../UserInfo/UserInfo';
 import {DataSelector} from '../DataSelector/DataSelector';
+import {AddTableRowForm} from '../AddTableRowForm/AddTableRowForm';
 
 type AddressType = {
     streetAddress: string
@@ -161,6 +162,7 @@ export const UsersTable = () => {
             {isTableLoading ?
                 <Spin style={{marginTop: '100px'}}/> :
                 <div>
+                    <AddTableRowForm />
                     <TableSearch onSearch={onSearch}/>
                     <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
                                currentPage={currentPage} onPageChanged={onPageChanged}
