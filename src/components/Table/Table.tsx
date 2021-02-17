@@ -1,9 +1,18 @@
 import {Spin, Table} from 'antd';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {getSmallTableThunkCreator, setCurrentPage, setDisplayTableData} from '../../redux/tableReducer';
+import {
+    getSmallTableThunkCreator,
+    search,
+    setCurrentPage,
+    setDisplayTableData, setSelectedUserData,
+    setTotalUsersCount
+} from '../../redux/tableReducer';
 import {AppRootStateType} from '../../redux/redux-store';
 import {Paginator} from '../Paginator/Paginator';
+import {TableSearch} from '../Search/TableSearch';
+import {UserInfo} from '../UserInfo/UserInfo';
+import {DataSelector} from '../DataSelector/DataSelector';
 
 type AddressType = {
     streetAddress: string
@@ -25,11 +34,6 @@ export type UserType = {
 
 export const UsersTable = () => {
     const dispatch = useDispatch()
-
-    useEffect(() => {
-        dispatch(getSmallTableThunkCreator())
-    }, [dispatch])
-
 
 //Тестовые пользователи для таблицы
     let testData: Array<UserType> = [
@@ -124,11 +128,32 @@ export const UsersTable = () => {
     let pageSize = useSelector<AppRootStateType, number>(state => state.table.pageSize)
     let currentPage = useSelector<AppRootStateType, number>(state => state.table.currentPage)
 
+    let selectedUserData = useSelector<AppRootStateType, UserType>(state => state.table.selectedUserData)
+
     const onPageChanged = (pageNumber: number) => {
         dispatch(setCurrentPage(pageNumber))
 //Выбор части таблицы
         let newDisplayTableData = tableData.slice((pageNumber - 1) * pageSize, ((pageNumber - 1) * pageSize + pageSize))
         dispatch(setDisplayTableData(newDisplayTableData))
+    }
+//Фильтрация по подстроке
+    const onSearch = (value: string) => {
+        dispatch(search(value))
+        let newDisplayTableData = tableData.filter(user => {
+            return user.firstName.toLowerCase().includes(value.toLowerCase())
+                || user.lastName.toLowerCase().includes(value.toLowerCase())
+                || user.email.toLowerCase().includes(value.toLowerCase())
+                || user.phone.includes(value)
+        })
+        //Изменение количества пользователей(строк таблицы) для пересчета кнопок в пагинации
+        dispatch(setTotalUsersCount(newDisplayTableData.length))
+        dispatch(setDisplayTableData(newDisplayTableData))
+    }
+
+    let isDataSelected = useSelector<AppRootStateType, boolean>(state => state.table.isDataSelected)
+
+    if (!isDataSelected) {
+        return <DataSelector/>
     }
 
     return (
@@ -136,10 +161,23 @@ export const UsersTable = () => {
             {isTableLoading ?
                 <Spin style={{marginTop: '100px'}}/> :
                 <div>
+                    <TableSearch onSearch={onSearch}/>
                     <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
                                currentPage={currentPage} onPageChanged={onPageChanged}
-                               portionSize={5}/>
-                    <Table dataSource={displayTableData} columns={columns} rowKey={'phone'} pagination={false}/>
+                               portionSize={5}
+                    />
+                    <Table dataSource={displayTableData} columns={columns} rowKey={'phone'} pagination={false}
+                           onRow={(record, rowIndex) => {
+                               return {
+                                   onClick: event => {
+                                       dispatch(setSelectedUserData(record))
+                                   },
+                               };
+                           }}/>
+                    {selectedUserData ?
+                        <UserInfo userData={selectedUserData}/>
+                        : ''
+                    }
                 </div>
             }
         </div>
