@@ -1,5 +1,5 @@
 import {Button, Result, Spin, Table} from 'antd';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {
     search,
@@ -103,13 +103,13 @@ export const UsersTable = () => {
     }
 
 //При нажатии на кнопку страницы пагинатора
-    const onPageChanged = (pageNumber: number) => {
+    const onPageChanged = useCallback((pageNumber: number) => {
         dispatch(setCurrentPage(pageNumber))
         dispatch(setDisplayTableData())
-    }
+    }, [dispatch])
 
 //Фильтрация по подстроке при нажатии на поиск
-    const onSearch = (value: string) => {
+    const onSearch = useCallback((value: string) => {
         dispatch(search(value))
         let newDisplayTableData = tableData.filter(user => {
             return user.firstName.toLowerCase().includes(value.toLowerCase())
@@ -120,14 +120,14 @@ export const UsersTable = () => {
         //Изменение количества пользователей(строк таблицы) для пересчета кнопок в пагинации
         dispatch(setTotalUsersCount(newDisplayTableData.length))
         dispatch(setDisplayTableData(newDisplayTableData))
-    }
+    }, [dispatch, tableData])
 
 //Форма для добавления новой строки показывается по нажатию кнопки
     let isAddNewUserFormVisible = useSelector<AppRootStateType, boolean>(state => state.table.isAddNewUserFormVisible)
 
-    const onAddUserClick = () => {
+    const onAddUserClick = useCallback(() => {
         dispatch(setIsAddNewUserFormVisible(!isAddNewUserFormVisible))
-    }
+    }, [dispatch, isAddNewUserFormVisible])
 
 //Таблица отображается только после выбора набора данных
     let isDataSelected = useSelector<AppRootStateType, boolean>(state => state.table.isDataSelected)
