@@ -24,7 +24,7 @@ export const Paginator: React.FC<PaginatorPropsType> = (props) => {
     let rightPortionPageNumber = portionNumber * props.portionSize
 
     return (
-        <div>
+        <div style={{textAlign: 'center'}}>
             <Button onClick={() => {
                 setPortionNumber(portionNumber - 1)
             }}

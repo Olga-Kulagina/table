@@ -15,10 +15,8 @@ export const DataSelector = () => {
         dispatch(getBigTableThunkCreator())
     }
 
-
-
     return (
-        <div>
+        <div style={{textAlign: 'center'}}>
             <p>Select dataset</p>
             <Button onClick={onSmallBtnClick}>Small</Button>
             <Button onClick={onBigBtnClick}>Big</Button>

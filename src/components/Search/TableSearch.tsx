@@ -5,12 +5,9 @@ type TableSearchType = {
     onSearch: (value: string) => void
 }
 
-
 export const TableSearch = (props: TableSearchType) => {
 
     let [searchText, setSearchText] = useState<string>('')
-
-
 
     const onSearchInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setSearchText(e.currentTarget.value)
@@ -19,7 +16,7 @@ export const TableSearch = (props: TableSearchType) => {
     return (
         <div>
             <Search placeholder="Search" onSearch={props.onSearch}
-                    enterButton value={searchText} onChange={onSearchInputChange} />
+                    enterButton value={searchText} onChange={onSearchInputChange}/>
         </div>
     )
 }

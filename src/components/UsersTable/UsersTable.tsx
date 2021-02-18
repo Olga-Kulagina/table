@@ -1,11 +1,10 @@
-import {Spin, Table} from 'antd';
-import React, {useEffect} from 'react';
+import {Button, Spin, Table} from 'antd';
+import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {
-    getSmallTableThunkCreator,
     search,
     setCurrentPage,
-    setDisplayTableData, setSelectedUserData,
+    setDisplayTableData, setIsAddNewUserFormVisible, setSelectedUserData,
     setTotalUsersCount
 } from '../../redux/tableReducer';
 import {AppRootStateType} from '../../redux/redux-store';
@@ -13,7 +12,7 @@ import {Paginator} from '../Paginator/Paginator';
 import {TableSearch} from '../Search/TableSearch';
 import {UserInfo} from '../UserInfo/UserInfo';
 import {DataSelector} from '../DataSelector/DataSelector';
-import {AddTableRowForm} from '../AddTableRowForm/AddTableRowForm';
+import {AddNewUserForm} from '../AddNewUserForm/AddNewUserForm';
 
 type AddressType = {
     streetAddress: string
@@ -36,52 +35,11 @@ export type UserType = {
 export const UsersTable = () => {
     const dispatch = useDispatch()
 
-//Тестовые пользователи для таблицы
-    let testData: Array<UserType> = [
-        {
-            "id": 274,
-            "firstName": "Sangita",
-            "lastName": "Jessica",
-            "email": "GCoggins@lacus.org",
-            "phone": "(888)759-1115",
-            "address": {
-                "streetAddress": "2122 Adipiscing Ct",
-                "city": "Philadelphia",
-                "state": "IL",
-                "zip": "11243"
-            },
-            "description": "ipsum facilisis consequat magna nec amet nullam mi convallis ac vitae velit nec augue massa vel elit malesuada eget nunc lacus mattis dolor lacus nullam pharetra mattis libero vel lorem aliquam augue"
-        },
-        {
-            "id": 638,
-            "firstName": "Corey",
-            "lastName": "Maddalone",
-            "email": "PWilliamson@vestibulum.ly",
-            "phone": "(371)506-4152",
-            "address": {
-                "streetAddress": "754 Placerat St",
-                "city": "New Port Richey",
-                "state": "IA",
-                "zip": "25145"
-            },
-            "description": "convallis amet amet nullam placerat sit vestibulum dolor tellus massa vitae nec mattis hendrerit tellus hendrerit elit tincidunt et sit convallis et at at lacus molestie ipsum aenean ipsum odio amet sapien"
-        }
-    ]
-
-    let tableData = useSelector<AppRootStateType, Array<UserType>>(state => state.table.tableData)
-
+//Если таблица загружается, показывается крутилка
     let isTableLoading = useSelector<AppRootStateType, boolean>(state => state.table.isTableLoading)
-//Сортировка с помощью метода массива sort
-    const stringSorterFunction = (a: string, b: string) => {
-        if (a > b) {
-            return 1;
-        }
-        if (a < b) {
-            return -1;
-        }
-        return 0;
-    }
 
+//Данные для таблицы (пропсы AntDesign)
+    let tableData = useSelector<AppRootStateType, Array<UserType>>(state => state.table.tableData)
     const columns = [
         {
             title: 'ID',
@@ -122,22 +80,33 @@ export const UsersTable = () => {
             }
         },
     ]
-
+//Отображаемые строки таблицы (максимум 50)
     let displayTableData = useSelector<AppRootStateType, Array<UserType>>(state => state.table.displayTableData)
-
+//Даные для рассчета кнопок пагинации
     let totalUsersCount = useSelector<AppRootStateType, number>(state => state.table.totalUsersCount)
     let pageSize = useSelector<AppRootStateType, number>(state => state.table.pageSize)
     let currentPage = useSelector<AppRootStateType, number>(state => state.table.currentPage)
-
+//Выбранный пользователь (отображается внизу таблицы)
     let selectedUserData = useSelector<AppRootStateType, UserType>(state => state.table.selectedUserData)
 
+//Сортировка с помощью метода массива sort
+    const stringSorterFunction = (a: string, b: string) => {
+        if (a > b) {
+            return 1;
+        }
+        if (a < b) {
+            return -1;
+        }
+        return 0;
+    }
+
+//При нажатии на кнопку страницы пагинатора
     const onPageChanged = (pageNumber: number) => {
         dispatch(setCurrentPage(pageNumber))
-//Выбор части таблицы
-        let newDisplayTableData = tableData.slice((pageNumber - 1) * pageSize, ((pageNumber - 1) * pageSize + pageSize))
-        dispatch(setDisplayTableData(newDisplayTableData))
+        dispatch(setDisplayTableData())
     }
-//Фильтрация по подстроке
+
+//Фильтрация по подстроке при нажатии на поиск
     const onSearch = (value: string) => {
         dispatch(search(value))
         let newDisplayTableData = tableData.filter(user => {
@@ -148,11 +117,18 @@ export const UsersTable = () => {
         })
         //Изменение количества пользователей(строк таблицы) для пересчета кнопок в пагинации
         dispatch(setTotalUsersCount(newDisplayTableData.length))
-        dispatch(setDisplayTableData(newDisplayTableData))
+        dispatch(setDisplayTableData())
     }
 
-    let isDataSelected = useSelector<AppRootStateType, boolean>(state => state.table.isDataSelected)
+//Форма для добавления новой строки показывается по нажатию кнопки
+    let isAddNewUserFormVisible = useSelector<AppRootStateType, boolean>(state => state.table.isAddNewUserFormVisible)
 
+    const onAddUserClick = () => {
+        dispatch(setIsAddNewUserFormVisible(!isAddNewUserFormVisible))
+    }
+
+//Таблица отображается только после выбора набора данных
+    let isDataSelected = useSelector<AppRootStateType, boolean>(state => state.table.isDataSelected)
     if (!isDataSelected) {
         return <DataSelector/>
     }
@@ -162,12 +138,9 @@ export const UsersTable = () => {
             {isTableLoading ?
                 <Spin style={{marginTop: '100px'}}/> :
                 <div>
-                    <AddTableRowForm />
                     <TableSearch onSearch={onSearch}/>
-                    <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
-                               currentPage={currentPage} onPageChanged={onPageChanged}
-                               portionSize={5}
-                    />
+                    <Button onClick={onAddUserClick}>Add User</Button>
+                    {isAddNewUserFormVisible ? <AddNewUserForm/> : ''}
                     <Table dataSource={displayTableData} columns={columns} rowKey={'phone'} pagination={false}
                            onRow={(record, rowIndex) => {
                                return {
@@ -176,6 +149,10 @@ export const UsersTable = () => {
                                    },
                                };
                            }}/>
+                    <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
+                               currentPage={currentPage} onPageChanged={onPageChanged}
+                               portionSize={5}
+                    />
                     {selectedUserData ?
                         <UserInfo userData={selectedUserData}/>
                         : ''

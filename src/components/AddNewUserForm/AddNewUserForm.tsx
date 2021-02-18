@@ -1,6 +1,8 @@
 import React from 'react'
 import {useFormik} from 'formik';
 import {Button, Form, Input} from 'antd';
+import {useDispatch} from 'react-redux';
+import {addNewUser} from '../../redux/tableReducer';
 
 type FormValuesType = {
     id: string
@@ -21,13 +23,13 @@ const validate = (values: FormValuesType) => {
     if (!values.firstName) {
         errors.firstName = 'Required';
     } else if (/[^A-Za-z]/.test(values.firstName)) {
-        errors.firstName = 'First name should only contain letters';
+        errors.firstName = 'First name should only contain latin letters';
     }
 
     if (!values.lastName) {
         errors.lastName = 'Required';
     } else if (/[^A-Za-z]/.test(values.lastName)) {
-        errors.lastName = 'Last name should only contain letters';
+        errors.lastName = 'Last name should only contain latin letters';
     }
 
     if (!values.email) {
@@ -46,7 +48,8 @@ const validate = (values: FormValuesType) => {
 };
 
 
-export const AddTableRowForm = () => {
+export const AddNewUserForm = () => {
+    const dispatch = useDispatch()
 
     const formik = useFormik({
         initialValues: {
@@ -58,15 +61,16 @@ export const AddTableRowForm = () => {
         },
         validate,
         onSubmit: values => {
-            console.log(values)
+            dispatch(addNewUser(values))
+
         },
     });
 
 
     return (
         <div>
-            <Form onFinish={formik.handleSubmit} >
-                <Form.Item label='ID'>
+            <Form onFinish={formik.handleSubmit} layout='horizontal' size='small'>
+                <Form.Item label='ID' validateStatus={formik.touched.id && formik.errors.id ? 'error' : ''}>
                     <Input
                         id='id'
                         type='text'
@@ -74,9 +78,9 @@ export const AddTableRowForm = () => {
                         onBlur={formik.handleBlur}
                         value={formik.values.id}
                     />
-                    {formik.touched.id && formik.errors.id ? <div>{formik.errors.id}</div> : null}
+                    {formik.touched.id && formik.errors.id ? <div style={{color: 'red'}}>{formik.errors.id}</div> : null}
                 </Form.Item>
-                <Form.Item label='First name'>
+                <Form.Item label='First name' validateStatus={formik.touched.firstName && formik.errors.firstName ? 'error' : ''}>
                     <Input
                         id='firstName'
                         type='text'
@@ -84,9 +88,9 @@ export const AddTableRowForm = () => {
                         onBlur={formik.handleBlur}
                         value={formik.values.firstName}
                     />
-                    {formik.touched.firstName && formik.errors.firstName ? <div>{formik.errors.firstName}</div> : null}
+                    {formik.touched.firstName && formik.errors.firstName ? <div style={{color: 'red'}}>{formik.errors.firstName}</div> : null}
                 </Form.Item>
-                <Form.Item label='Last name'>
+                <Form.Item label='Last name' validateStatus={formik.touched.lastName && formik.errors.lastName ? 'error' : ''}>
                     <Input
                         id='lastName'
                         type='text'
@@ -94,9 +98,9 @@ export const AddTableRowForm = () => {
                         onBlur={formik.handleBlur}
                         value={formik.values.lastName}
                     />
-                    {formik.touched.lastName && formik.errors.lastName ? <div>{formik.errors.lastName}</div> : null}
+                    {formik.touched.lastName && formik.errors.lastName ? <div style={{color: 'red'}}>{formik.errors.lastName}</div> : null}
                 </Form.Item>
-                <Form.Item label='Email'>
+                <Form.Item label='Email' validateStatus={formik.touched.email && formik.errors.email ? 'error' : ''}>
                     <Input
                         id='email'
                         type='email'
@@ -104,9 +108,9 @@ export const AddTableRowForm = () => {
                         onBlur={formik.handleBlur}
                         value={formik.values.email}
                     />
+                    {formik.touched.email && formik.errors.email ? <div style={{color: 'red'}}>{formik.errors.email}</div> : null}
                 </Form.Item>
-                {formik.touched.email && formik.errors.email ? <div>{formik.errors.email}</div> : null}
-                <Form.Item label='Phone'>
+                <Form.Item label='Phone' validateStatus={formik.touched.phone && formik.errors.phone ? 'error' : ''}>
                     <Input
                         id='phone'
                         type='text'
@@ -114,10 +118,10 @@ export const AddTableRowForm = () => {
                         onBlur={formik.handleBlur}
                         value={formik.values.phone}
                     />
-                    {formik.touched.phone && formik.errors.phone ? <div>{formik.errors.phone}</div> : null}
+                    {formik.touched.phone && formik.errors.phone ? <div style={{color: 'red'}}>{formik.errors.phone}</div> : null}
                 </Form.Item>
                 <Form.Item>
-                    <Button type='primary' htmlType='submit'>Submit</Button>
+                    <Button type='primary' htmlType='submit' disabled={!formik.isValid}>Add</Button>
                 </Form.Item>
             </Form>
         </div>
