@@ -1,10 +1,10 @@
-import {Button, Spin, Table} from 'antd';
+import {Button, Result, Spin, Table} from 'antd';
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {
     search,
     setCurrentPage,
-    setDisplayTableData, setIsAddNewUserFormVisible, setSelectedUserData,
+    setDisplayTableData, setIsAddNewUserFormVisible, setIsDataSelected, setSelectedUserData, setSomeError,
     setTotalUsersCount
 } from '../../redux/tableReducer';
 import {AppRootStateType} from '../../redux/redux-store';
@@ -34,6 +34,8 @@ export type UserType = {
 
 export const UsersTable = () => {
     const dispatch = useDispatch()
+
+    let someError = useSelector<AppRootStateType, boolean>(state => state.table.someError)
 
 //Если таблица загружается, показывается крутилка
     let isTableLoading = useSelector<AppRootStateType, boolean>(state => state.table.isTableLoading)
@@ -117,7 +119,7 @@ export const UsersTable = () => {
         })
         //Изменение количества пользователей(строк таблицы) для пересчета кнопок в пагинации
         dispatch(setTotalUsersCount(newDisplayTableData.length))
-        dispatch(setDisplayTableData())
+        dispatch(setDisplayTableData(newDisplayTableData))
     }
 
 //Форма для добавления новой строки показывается по нажатию кнопки
@@ -132,6 +134,20 @@ export const UsersTable = () => {
     if (!isDataSelected) {
         return <DataSelector/>
     }
+
+    const onBackHomeClick = () => {
+        dispatch(setSomeError(false))
+        dispatch(setIsDataSelected(false))
+    }
+
+    if (someError) {
+        return <Result
+            status="500"
+            subTitle="Sorry, something went wrong."
+            extra={<Button type="primary" onClick={onBackHomeClick}>Back Home</Button>}
+        />
+    }
+
 
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>

@@ -12,6 +12,7 @@ type SetSelectedUserDataType = ReturnType<typeof setSelectedUserData>
 type SetIsDataSelectedType = ReturnType<typeof setIsDataSelected>
 type AddNewUserType = ReturnType<typeof addNewUser>
 type SetIsAddNewUserFormVisibleType = ReturnType<typeof setIsAddNewUserFormVisible>
+type SetSomeErrorType = ReturnType<typeof setSomeError>
 
 type ActionsType =
     SetTableDataType
@@ -24,7 +25,8 @@ type ActionsType =
     | SetIsDataSelectedType
     | AddNewUserType
     | SetIsAddNewUserFormVisibleType
-type TableReducerStateType = typeof initialState
+    | SetSomeErrorType
+export type TableReducerStateType = typeof initialState
 
 const initialState = {
     //Вся таблица
@@ -41,7 +43,8 @@ const initialState = {
     selectedUserData: null as UserType,
     //Выбран ли набор данных, загружаемый с сервера (маленький или большой)
     isDataSelected: false,
-    isAddNewUserFormVisible: false
+    isAddNewUserFormVisible: false,
+    someError: false
 }
 
 export const tableReducer = (state: TableReducerStateType = initialState, action: ActionsType): TableReducerStateType => {
@@ -54,8 +57,10 @@ export const tableReducer = (state: TableReducerStateType = initialState, action
         }
         case 'SET_DISPLAY_TABLE_DATA': {
             let tableData = [...state.tableData]
-            let newDisplayTableData = tableData.slice((state.currentPage - 1) * state.pageSize, ((state.currentPage - 1) * state.pageSize + state.pageSize))
-            return {...state, displayTableData: newDisplayTableData}
+            //Если передаем массив юзеров (только при поиске), то разбиваем на страницы его, если ничего не передаем, то разбиваем на страницы исходный массив данных
+            let newD = action.newDisplayTableData ? action.newDisplayTableData.slice((state.currentPage - 1) * state.pageSize, ((state.currentPage - 1) * state.pageSize + state.pageSize))
+            : tableData.slice((state.currentPage - 1) * state.pageSize, ((state.currentPage - 1) * state.pageSize + state.pageSize))
+            return {...state, displayTableData: newD }
         }
         case 'SET_IS_TABLE_LOADING': {
             return {...state, isTableLoading: action.isTableLoading}
@@ -97,6 +102,9 @@ export const tableReducer = (state: TableReducerStateType = initialState, action
                 displayTableData: newDisplayTableData
             }
         }
+        case 'SET_SOME_ERROR': {
+            return {...state, someError: action.error}
+        }
         default:
             return state;
     }
@@ -105,8 +113,8 @@ export const tableReducer = (state: TableReducerStateType = initialState, action
 export const setTableData = (tableData: Array<UserType>) => {
     return {type: 'SET_TABLE_DATA', tableData} as const
 }
-export const setDisplayTableData = () => {
-    return {type: 'SET_DISPLAY_TABLE_DATA'} as const
+export const setDisplayTableData = (newDisplayTableData?: Array<UserType>) => {
+    return {type: 'SET_DISPLAY_TABLE_DATA', newDisplayTableData} as const
 }
 export const setIsTableLoading = (isTableLoading: boolean) => {
     return {type: 'SET_IS_TABLE_LOADING', isTableLoading} as const
@@ -142,6 +150,10 @@ export const addNewUser = (newUser: NewUserType) => {
     return {type: 'ADD_NEW_USER', newUser} as const
 }
 
+export const setSomeError = (error: boolean) => {
+    return {type: 'SET_SOME_ERROR', error} as const
+}
+
 export const getSmallTableThunkCreator = () => (dispatch: Dispatch) => {
     dispatch(setIsTableLoading(true))
     tableAPI.getSmallTable()
@@ -151,7 +163,7 @@ export const getSmallTableThunkCreator = () => (dispatch: Dispatch) => {
             dispatch(setDisplayTableData())
         })
         .catch((err) => {
-            console.error('Some error occur')
+            dispatch(setSomeError(true))
         })
         .finally(() => {
             dispatch(setIsTableLoading(false))
@@ -167,7 +179,7 @@ export const getBigTableThunkCreator = () => (dispatch: Dispatch) => {
             dispatch(setDisplayTableData())
         })
         .catch((err) => {
-            console.error('Some error occur')
+            dispatch(setSomeError(true))
         })
         .finally(() => {
             dispatch(setIsTableLoading(false))
